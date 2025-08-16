@@ -21,7 +21,6 @@ extension Card {
     @NSManaged public var repetitions: Int32
     @NSManaged public var easeFactor: Float
     @NSManaged public var reviewCount: Int32
-    @NSManaged public var isArchived: Bool
     @NSManaged public var archivedAt: Date?
     @NSManaged public var cardState: String
     @NSManaged public var suggestionContext: String?

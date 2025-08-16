@@ -39,6 +39,7 @@ struct DeckDetailView: View {
     @State private var showingSuggestions = false
     @State private var showingSuggestedCards = false
     @State private var showingEditDeck = false
+    @State private var showingArchive = false
     @StateObject private var backgroundImageService = BackgroundImageGenerationService.shared
     
     var body: some View {
@@ -81,6 +82,9 @@ struct DeckDetailView: View {
             .sheet(isPresented: $showingEditDeck) {
                 DeckEditView(deck: deck)
             }
+            .sheet(isPresented: $showingArchive) {
+                ArchiveView(deck: deck)
+            }
             .overlay(toastOverlay)
     }
     
@@ -89,7 +93,7 @@ struct DeckDetailView: View {
             deckStatsSection
             actionsSection
             cardsSection
-            archiveSection
+            // Archive section removed - accessed via action menu
         }
     }
     
@@ -191,6 +195,7 @@ struct DeckDetailView: View {
             studyButton
             addCardButton
             suggestionsButton
+            viewArchiveButton
         }
     }
     
@@ -225,6 +230,19 @@ struct DeckDetailView: View {
                 .foregroundColor(suggestionCount > 0 ? .primary : .secondary)
         }
         .disabled(suggestionCount == 0)
+    }
+    
+    private var viewArchiveButton: some View {
+        let archiveCount = deck.archivedCards.count
+        
+        return Button {
+            SoundService.shared.playButtonTap()
+            showingArchive = true
+        } label: {
+            Label("View Archive (\(archiveCount))", systemImage: "archivebox")
+                .foregroundColor(archiveCount > 0 ? .primary : .secondary)
+        }
+        .disabled(archiveCount == 0)
     }
     
     private var cardsSection: some View {
@@ -356,7 +374,7 @@ private var toastOverlay: some View {
         
         do {
             // Check if card is already deleted or archived
-            guard !card.isDeleted && !card.isArchived else {
+            guard !card.isDeleted && card.state != .archived else {
                 print("⚠️ Card is already deleted or archived")
                 return
             }
@@ -685,7 +703,8 @@ struct EnhancedCardRowView: View {
                     let verticalMovement = abs(value.translation.height)
                     
                     // Require horizontal movement to be at least 2x vertical movement to activate swipe
-                    if horizontalMovement > verticalMovement * 2 && horizontalMovement > 30 {
+                    // Only allow left swipe (negative width)
+                    if horizontalMovement > verticalMovement * 2 && horizontalMovement > 30 && value.translation.width < 0 {
                         dragOffset = value.translation
                     } else if horizontalMovement <= 30 {
                         // Reset offset for small movements to allow scrolling
@@ -701,14 +720,8 @@ struct EnhancedCardRowView: View {
                     
                     // Only trigger swipe action if it's a deliberate horizontal gesture
                     if horizontalMovement > verticalMovement * 2 {
-                        if value.translation.width > 100 {
-                            // Right swipe threshold reached - higher threshold for more deliberate action
-                            withAnimation(.easeOut(duration: 0.3)) {
-                                dragOffset = .zero
-                            }
-                            markAsSuccess()
-                        } else if value.translation.width < -100 {
-                            // Left swipe threshold reached - higher threshold for more deliberate action
+                        if value.translation.width < -100 {
+                            // Left swipe threshold reached - archive action
                             withAnimation(.easeOut(duration: 0.3)) {
                                 dragOffset = .zero
                             }

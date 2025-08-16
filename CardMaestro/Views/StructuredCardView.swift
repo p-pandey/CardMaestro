@@ -106,19 +106,10 @@ struct StructuredCardView: View {
                     CardFrontOverlay(frontText: card.front, cardType: card.cardType)
                 }
                 
-                Spacer()
+                Spacer(minLength: 20) // Ensure minimum 20px spacing
                 
-                // Type icon (top right)
+                // Type icon (top right) - removed flip icon
                 HStack(spacing: 8) {
-                    if showFlipIcon {
-                        Image(systemName: "arrow.triangle.2.circlepath")
-                            .foregroundColor(card.cardType.color.opacity(0.6))
-                            .font(.subheadline)
-                            .fontWeight(.medium)
-                            .padding(8)
-                            .liquidGlassIcon(baseColor: card.cardType.color)
-                    }
-                    
                     Image(systemName: card.cardType.icon)
                         .font(.subheadline)
                         .fontWeight(.semibold)
@@ -290,33 +281,35 @@ struct VocabularyBackView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // Primary meaning with script font
+            // Primary meaning with script font - wider layout
             Text(content.meaning)
                 .font(.custom("Georgia", size: min(DynamicTypography.primarySize(for: content.meaning, cardType: .vocabulary), 36)))
                 .fontWeight(.medium)
                 .foregroundColor(.primary)
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .frame(maxWidth: .infinity, alignment: .center) // Changed to center
                 .lineLimit(nil)
                 .minimumScaleFactor(0.8)
                 .italic()
                 .letterpress()
+                .padding(.horizontal, 8) // Add horizontal padding for better width usage
                 .padding(.bottom, 20)
             
             // Flexible space that accounts for image
             Spacer(minLength: 180) // Space for 150px image + margins
             
-            // Optional detail firmly positioned at bottom
+            // Optional detail firmly positioned at bottom with proper spacing from image
             if let detail = content.detail, !detail.isEmpty {
                 VStack(spacing: 0) {
-                    Spacer(minLength: 20) // Minimum spacing from image
+                    Spacer(minLength: 30) // Increased spacing from image
                     
                     Text(detail)
                         .font(.system(size: DynamicTypography.secondarySize(for: detail)))
                         .fontWeight(.regular)
                         .foregroundColor(.secondary)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .frame(maxWidth: .infinity, alignment: .center) // Changed to center for consistency
                         .lineLimit(nil)
                         .minimumScaleFactor(0.8)
+                        .padding(.horizontal, 8) // Add horizontal padding
                         .padding(.top, 16)
                 }
             }
@@ -386,33 +379,35 @@ struct FactBackView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // Primary answer with script font
+            // Primary answer with script font - wider layout
             Text(content.answer)
                 .font(.custom("Georgia", size: min(DynamicTypography.primarySize(for: content.answer, cardType: .fact), 32)))
                 .fontWeight(.medium)
                 .foregroundColor(.primary)
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .frame(maxWidth: .infinity, alignment: .center) // Changed to center
                 .lineLimit(nil)
                 .minimumScaleFactor(0.8)
                 .italic()
                 .letterpress()
+                .padding(.horizontal, 8) // Add horizontal padding for better width usage
                 .padding(.bottom, 20)
             
             // Flexible space that accounts for image
             Spacer(minLength: 180) // Space for 150px image + margins
             
-            // Optional detail firmly positioned at bottom
+            // Optional detail firmly positioned at bottom with proper spacing from image
             if let detail = content.detail, !detail.isEmpty {
                 VStack(spacing: 0) {
-                    Spacer(minLength: 20) // Minimum spacing from image
+                    Spacer(minLength: 30) // Increased spacing from image
                     
                     Text(detail)
                         .font(.system(size: DynamicTypography.secondarySize(for: detail)))
                         .fontWeight(.regular)
                         .foregroundColor(.secondary)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .frame(maxWidth: .infinity, alignment: .center) // Changed to center for consistency
                         .lineLimit(nil)
                         .minimumScaleFactor(0.8)
+                        .padding(.horizontal, 8) // Add horizontal padding
                         .padding(.top, 16)
                 }
             }

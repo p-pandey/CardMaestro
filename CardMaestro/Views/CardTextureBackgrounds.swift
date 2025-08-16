@@ -4,40 +4,67 @@ import UIKit
 /// Custom texture backgrounds for cards with realistic paper textures
 struct CardTextureBackgrounds {
     
-    /// Creates a programmatic texture that mimics the brown paper texture for dark mode
+    /// Creates a programmatic texture that mimics a dark concrete/asphalt texture for dark mode
     static func createDarkModeTexture(size: CGSize = CGSize(width: 200, height: 200)) -> UIImage {
         let renderer = UIGraphicsImageRenderer(size: size)
         
         return renderer.image { context in
             let cgContext = context.cgContext
             
-            // Base brown color
-            let baseColor = UIColor(red: 0.64, green: 0.49, blue: 0.35, alpha: 1.0) // Warm brown
+            // Base very dark color - like dark concrete/asphalt
+            let baseColor = UIColor(red: 0.12, green: 0.12, blue: 0.12, alpha: 1.0) // Very dark gray
             baseColor.setFill()
             cgContext.fill(CGRect(origin: .zero, size: size))
             
-            // Add texture noise
-            let noiseColor1 = UIColor(red: 0.58, green: 0.43, blue: 0.29, alpha: 0.3)
-            let noiseColor2 = UIColor(red: 0.70, green: 0.55, blue: 0.41, alpha: 0.2)
-            let noiseColor3 = UIColor(red: 0.52, green: 0.37, blue: 0.23, alpha: 0.4)
+            // Add fine granular noise texture for concrete/asphalt look
+            let lightSpeckles = UIColor(red: 0.2, green: 0.2, blue: 0.2, alpha: 0.8)
+            let mediumSpeckles = UIColor(red: 0.15, green: 0.15, blue: 0.15, alpha: 0.6)
+            let darkSpeckles = UIColor(red: 0.08, green: 0.08, blue: 0.08, alpha: 0.5)
             
-            // Create random noise pattern
-            for _ in 0..<Int(size.width * size.height * 0.1) {
+            // Create fine granular texture
+            for _ in 0..<Int(size.width * size.height * 0.3) {
                 let x = CGFloat.random(in: 0...size.width)
                 let y = CGFloat.random(in: 0...size.height)
-                let radius = CGFloat.random(in: 0.5...2.0)
+                let radius = CGFloat.random(in: 0.3...0.8)
                 
-                let color = [noiseColor1, noiseColor2, noiseColor3].randomElement()!
+                let color = [lightSpeckles, mediumSpeckles, darkSpeckles].randomElement()!
                 color.setFill()
                 
                 cgContext.fillEllipse(in: CGRect(x: x, y: y, width: radius, height: radius))
             }
             
-            // Add subtle gradient overlay
+            // Add slightly larger speckles for varied texture
+            for _ in 0..<Int(size.width * size.height * 0.1) {
+                let x = CGFloat.random(in: 0...size.width)
+                let y = CGFloat.random(in: 0...size.height)
+                let radius = CGFloat.random(in: 1.0...2.5)
+                
+                let brightness = CGFloat.random(in: 0.1...0.25)
+                let color = UIColor(red: brightness, green: brightness, blue: brightness, alpha: 0.4)
+                color.setFill()
+                
+                cgContext.fillEllipse(in: CGRect(x: x, y: y, width: radius, height: radius))
+            }
+            
+            // Add subtle variation with noise
+            for _ in 0..<Int(size.width * size.height * 0.05) {
+                let x = CGFloat.random(in: 0...size.width)
+                let y = CGFloat.random(in: 0...size.height)
+                let width = CGFloat.random(in: 1.5...4.0)
+                let height = CGFloat.random(in: 0.5...1.5)
+                
+                let brightness = CGFloat.random(in: 0.05...0.18)
+                let color = UIColor(red: brightness, green: brightness, blue: brightness, alpha: 0.3)
+                color.setFill()
+                
+                cgContext.fillEllipse(in: CGRect(x: x, y: y, width: width, height: height))
+            }
+            
+            // Add very subtle gradient for depth
             let gradient = CGGradient(colorsSpace: CGColorSpaceCreateDeviceRGB(),
                                     colors: [
-                                        UIColor(red: 0.68, green: 0.53, blue: 0.39, alpha: 0.1).cgColor,
-                                        UIColor(red: 0.60, green: 0.45, blue: 0.31, alpha: 0.1).cgColor
+                                        UIColor(red: 0.14, green: 0.14, blue: 0.14, alpha: 0.1).cgColor,
+                                        UIColor(red: 0.10, green: 0.10, blue: 0.10, alpha: 0.1).cgColor
                                     ] as CFArray,
                                     locations: [0.0, 1.0])!
             
@@ -45,18 +72,6 @@ struct CardTextureBackgrounds {
                                        start: CGPoint(x: 0, y: 0),
                                        end: CGPoint(x: size.width, y: size.height),
                                        options: [])
-            
-            // Add subtle vertical lines for paper grain
-            let lineColor = UIColor(red: 0.56, green: 0.41, blue: 0.27, alpha: 0.15)
-            lineColor.setStroke()
-            cgContext.setLineWidth(0.5)
-            
-            for i in stride(from: 0, to: Int(size.width), by: 3) {
-                let x = CGFloat(i) + CGFloat.random(in: -0.5...0.5)
-                cgContext.move(to: CGPoint(x: x, y: 0))
-                cgContext.addLine(to: CGPoint(x: x, y: size.height))
-                cgContext.strokePath()
-            }
         }
     }
     
@@ -169,7 +184,7 @@ struct TexturedCardBackgroundView: View {
     
     private var baseColor: Color {
         if colorScheme == .dark {
-            return Color(red: 0.64, green: 0.49, blue: 0.35) // Warm brown base
+            return Color(red: 0.15, green: 0.25, blue: 0.45) // Dark blue to complement paperboard texture
         } else {
             return Color(red: 0.94, green: 0.94, blue: 0.92) // Light linen base
         }

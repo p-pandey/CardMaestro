@@ -20,9 +20,9 @@ class SoundService: ObservableObject {
     
     private func setupAudioSession() {
         do {
-            // Use .playback category to respect system volume controls
-            // This ensures sounds are muted when system volume is 0
-            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: [])
+            // Use .ambient category to respect the silent switch and system volume
+            // This ensures sounds follow the system volume and silent switch
+            try AVAudioSession.sharedInstance().setCategory(.ambient, mode: .default, options: [.mixWithOthers])
             try AVAudioSession.sharedInstance().setActive(true)
         } catch {
             print("Failed to set up audio session: \(error)")
@@ -163,6 +163,19 @@ class SoundService: ObservableObject {
     
     private func playSound(_ soundID: SystemSoundID) {
         guard soundsEnabled else { return }
+        
+        // Check system volume and silent switch
+        let audioSession = AVAudioSession.sharedInstance()
+        
+        // Check if silent switch is on (outputVolume will be 0 when muted via silent switch)
+        // Also check the actual output volume
+        if audioSession.outputVolume == 0 {
+            print("🔇 System volume is 0 or silent switch is on - skipping sound")
+            return
+        }
+        
+        // For better volume control, we use AudioServicesPlaySystemSound but first ensure
+        // the audio session is properly configured
         AudioServicesPlaySystemSound(soundID)
     }
     

@@ -35,8 +35,7 @@ struct OptimizedTexturedCardBackground: View {
             RoundedRectangle(cornerRadius: 16)
                 .fill(
                     ImagePaint(
-                        image: Image(uiImage: CardTextureSystem.getTexture(for: colorScheme))
-                            .resizable(resizingMode: .tile),
+                        image: Image(uiImage: CardTextureSystem.getTexture(for: colorScheme)),
                         scale: textureScale
                     )
                 )
@@ -80,7 +79,7 @@ struct OptimizedTexturedCardBackground: View {
     private var baseColor: Color {
         switch colorScheme {
         case .dark:
-            return Color(red: 0.64, green: 0.49, blue: 0.35) // Warm brown
+            return Color(red: 0.15, green: 0.25, blue: 0.45) // Dark blue to complement paperboard texture
         case .light:
             return Color(red: 0.94, green: 0.94, blue: 0.92) // Light linen
         @unknown default:
@@ -89,8 +88,8 @@ struct OptimizedTexturedCardBackground: View {
     }
     
     private var textureScale: CGFloat {
-        // Adjust scale based on device size for consistent texture appearance
-        UIScreen.main.bounds.width > 400 ? 0.8 : 1.0
+        // Use 1x scale to show texture at original resolution
+        1.0
     }
     
     private var textureOpacity: Double {
@@ -106,22 +105,22 @@ struct OptimizedTexturedCardBackground: View {
     }
 }
 
-/// Instructions for adding texture images to Assets.xcassets:
+/// Instructions for texture images in Assets.xcassets:
 /// 
-/// To use custom texture images instead of programmatic textures:
-/// 1. Add your texture images to Assets.xcassets with these names:
-///    - "card-texture-dark" (for the brown texture in dark mode)
-///    - "card-texture-light" (for the light linen texture in light mode)
-/// 2. The system will automatically use these images if available
-/// 3. The textures should be seamlessly tileable for best results
-/// 4. Recommended size: 200x200 pixels for optimal performance
+/// Current texture configuration:
+/// 1. Dark mode: Uses "card-texture-dark" - blue paperboard texture (JPG asset)
+/// 2. Light mode: Uses programmatic light linen texture generation
+/// 
+/// The system prioritizes asset-based textures over programmatic generation:
+/// - If "card-texture-dark" asset exists → uses the blue paperboard texture
+/// - If "card-texture-light" asset exists → uses that instead of programmatic generation
+/// - Otherwise falls back to programmatic texture generation
 /// 
 /// Image requirements:
-/// - Format: PNG for best quality
-/// - Size: 200x200px to 400x400px 
-/// - Should tile seamlessly (no visible edges when repeated)
-/// - Dark texture: warm brown paper-like texture
-/// - Light texture: light linen/canvas weave texture
+/// - Format: JPG or PNG for best quality
+/// - Size: Any size (ImagePaint handles scaling automatically)
+/// - Dark texture: Currently uses blue paperboard texture for premium feel
+/// - Light texture: Currently uses programmatic light linen/canvas weave
 
 extension View {
     /// Applies optimized textured background to cards

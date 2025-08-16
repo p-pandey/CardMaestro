@@ -162,7 +162,7 @@ FieldLevelCardEditView(card: card, deck: deck)
                 
                 Spacer()
                 
-                HStack(spacing: 4) {
+                HStack(spacing: 8) {
                     Image(systemName: card.cardType.icon)
                         .font(.caption)
                         .foregroundColor(card.cardType.color)

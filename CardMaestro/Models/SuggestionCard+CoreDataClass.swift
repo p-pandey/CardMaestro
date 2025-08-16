@@ -60,7 +60,7 @@ public class SuggestionCard: NSManagedObject, Identifiable {
         card.interval = 0
         card.repetitions = 0
         card.reviewCount = 0
-        card.isArchived = false
+        card.state = .active
         
         if let imageData = customImageData {
             card.customImageData = imageData
@@ -82,7 +82,7 @@ public class SuggestionCard: NSManagedObject, Identifiable {
         card.interval = 0
         card.repetitions = 0
         card.reviewCount = 0
-        card.isArchived = false
+        card.state = .active
         
         if let imageData = customImageData {
             card.customImageData = imageData

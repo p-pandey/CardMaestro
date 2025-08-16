@@ -264,16 +264,6 @@ struct StudyView: View {
             
             if showingBack {
                 reviewButtonsView
-            } else {
-                Button("Show Answer") {
-                    SoundService.shared.playCardFlip()
-                    withAnimation(.easeInOut(duration: 0.3)) {
-                        showingBack = true
-                    }
-                }
-                .buttonStyle(.borderedProminent)
-                .font(.headline)
-                .tint(deck.deckColor)
             }
         }
         .padding(.horizontal, 16)
@@ -328,7 +318,7 @@ struct StudyView: View {
             )
             .ignoresSafeArea()
             
-            // Flying card animations (on top layer) - use each unique icon only once
+            // Flying card animations (on top layer) - larger icons
             ForEach(Array(uniqueCardImages.prefix(5).enumerated()), id: \.offset) { index, image in
                 FlyingCardView(image: image, index: index)
             }
@@ -338,9 +328,9 @@ ScrollView(.vertical, showsIndicators: true) {
                 VStack(spacing: 30) {
                     Spacer(minLength: 40)
                     
-                    // Animated trophy
+                    // Static trophy
                     VStack(spacing: 16) {
-                        AnimatedTrophyView()
+                        StaticTrophyView()
                         
                         Text("Session Complete!")
                             .font(.largeTitle)
@@ -355,37 +345,32 @@ ScrollView(.vertical, showsIndicators: true) {
                     // Session summary card
                     VStack(spacing: 20) {
                         HStack(spacing: 30) {
-                            StatisticView(
-                                title: "Cards Studied",
+                            SymbolStatisticView(
+                                symbol: "📚",
                                 value: "\(cardsStudied)",
                                 color: deck.deckColor
                             )
                             
                             let duration = Date().timeIntervalSince(sessionStartTime)
-                            StatisticView(
-                                title: "Session Time",
+                            SymbolStatisticView(
+                                symbol: "🕐",
                                 value: formatDuration(duration),
                                 color: .blue
                             )
                         }
                         
-                        // Review breakdown
-                        if !sessionStats.isEmpty {
-                            VStack(spacing: 12) {
-                                Text("Review Breakdown")
-                                    .font(.headline)
-                                    .foregroundColor(.primary)
-                                
-                                LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: 12) {
-                                    ForEach(ReviewEase.allCases, id: \.rawValue) { ease in
-                                        if let count = sessionStats[ease], count > 0 {
-                                            SequentialReviewStatView(
-                                                ease: ease, 
-                                                count: count,
-                                                animationDelay: Double(ease.rawValue) * 1.5 + 2.0 // At least 1.5s between each statistic
-                                            )
-                                        }
-                                    }
+                        // Review breakdown - always show all 4 types
+                        VStack(spacing: 12) {
+                            Text("Review Breakdown")
+                                .font(.headline)
+                                .foregroundColor(.primary)
+                            
+                            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: 12) {
+                                ForEach(ReviewEase.allCases, id: \.rawValue) { ease in
+                                    ProfessionalReviewStatView(
+                                        ease: ease, 
+                                        count: sessionStats[ease] ?? 0
+                                    )
                                 }
                             }
                         }
@@ -423,10 +408,10 @@ ScrollView(.vertical, showsIndicators: true) {
             // End the study session when completion view appears
             endStudySession()
             
-            // Additional haptic feedback on appear
+            // Light haptic feedback on appear
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                let notificationFeedback = UINotificationFeedbackGenerator()
-                notificationFeedback.notificationOccurred(.success)
+                let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+                impactFeedback.impactOccurred()
             }
         }
     }
@@ -468,14 +453,13 @@ ScrollView(.vertical, showsIndicators: true) {
         
         // Check if session is complete
         if currentCardIndex + 1 >= studyCards.count {
-            // Enhanced completion feedback
+            // Simple completion feedback
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                // Enhanced haptics
-                let impactFeedback = UIImpactFeedbackGenerator(style: .heavy)
+                // Light haptics only
+                let impactFeedback = UIImpactFeedbackGenerator(style: .light)
                 impactFeedback.impactOccurred()
                 
-                // Enhanced sound
-                SoundService.shared.playSessionComplete()
+                // Remove completion sound
             }
         }
         
@@ -644,11 +628,11 @@ struct FlyingCardView: View {
     var body: some View {
         Image(uiImage: image)
             .resizable()
-            .frame(width: 50, height: 50)
-            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .frame(width: 80, height: 80) // Made bigger from 50x50
+            .clipShape(RoundedRectangle(cornerRadius: 12))
             .opacity(opacity)
             .position(position)
-            .shadow(color: Color.black.opacity(0.3), radius: 8, x: 0, y: 4)
+            .shadow(color: Color.black.opacity(0.3), radius: 12, x: 0, y: 6)
             .onAppear {
                 setupRandomAnimation()
             }
@@ -664,11 +648,11 @@ struct FlyingCardView: View {
         
         // Random starting position in bottom 1/4 (left or right side)
         let startFromLeft = Bool.random()
-        let startX = startFromLeft ? -25 : screenWidth + 25
+        let startX = startFromLeft ? -40 : screenWidth + 40 // Adjusted for bigger size
         let startY = screenHeight * 0.75 + Double.random(in: 0...(screenHeight * 0.25))
         
         // Random ending position on opposite side in top 1/4
-        let endX = startFromLeft ? screenWidth + 25 : -25
+        let endX = startFromLeft ? screenWidth + 40 : -40 // Adjusted for bigger size
         let endY = Double.random(in: 0...(screenHeight * 0.25))
         
         // Random flight duration between 6.0 and 9.0 seconds (2x slower than previous)
@@ -949,6 +933,97 @@ struct SequentialReviewStatView: View {
     }
     
     private func iconForEase(_ ease: ReviewEase) -> String {
+        switch ease {
+        case .again: return "xmark.circle.fill"
+        case .hard: return "exclamationmark.triangle.fill"
+        case .good: return "checkmark.circle.fill"
+        case .easy: return "star.circle.fill"
+        }
+    }
+    
+    private func colorForEase(_ ease: ReviewEase) -> Color {
+        switch ease {
+        case .again: return .red
+        case .hard: return .orange
+        case .good: return .green
+        case .easy: return .blue
+        }
+    }
+}
+
+// MARK: - Professional Session Complete Components
+
+struct StaticTrophyView: View {
+    @State private var selectedTrophy: String = ""
+    
+    private let trophyTypes = [
+        "trophy.fill", "crown.fill", "medal.fill",
+        "star.circle.fill", "rosette", "checkmark.seal.fill"
+    ]
+    
+    var body: some View {
+        Image(systemName: selectedTrophy.isEmpty ? "trophy.fill" : selectedTrophy)
+            .font(.system(size: 100))
+            .foregroundStyle(
+                LinearGradient(
+                    colors: [.yellow, .orange, .red],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            )
+            .padding(20)
+            .liquidGlassIcon(baseColor: .orange)
+            .shadow(color: Color.orange.opacity(0.8), radius: 20, x: 0, y: 8)
+            .onAppear {
+                selectedTrophy = trophyTypes.randomElement() ?? "trophy.fill"
+            }
+    }
+}
+
+struct SymbolStatisticView: View {
+    let symbol: String
+    let value: String
+    let color: Color
+    
+    var body: some View {
+        VStack(spacing: 8) {
+            Text(value)
+                .font(.system(size: 32, weight: .bold, design: .rounded))
+                .foregroundColor(color)
+            
+            Text(symbol)
+                .font(.system(size: 24))
+        }
+    }
+}
+
+struct ProfessionalReviewStatView: View {
+    let ease: ReviewEase
+    let count: Int
+    
+    var body: some View {
+        VStack(spacing: 8) {
+            Image(systemName: symbolForEase(ease))
+                .font(.system(size: 24))
+                .foregroundColor(colorForEase(ease))
+                .frame(width: 30, height: 30)
+                .liquidGlassIcon(baseColor: colorForEase(ease))
+            
+            Text("\(count)")
+                .font(.system(size: 20, weight: .bold, design: .rounded))
+                .foregroundColor(colorForEase(ease))
+        }
+        .frame(maxWidth: .infinity)
+        .frame(height: 80) // Fixed height for consistency
+        .padding(.vertical, 12)
+        .padding(.horizontal, 8)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(colorForEase(ease).opacity(0.1))
+        )
+    }
+    
+    private func symbolForEase(_ ease: ReviewEase) -> String {
         switch ease {
         case .again: return "xmark.circle.fill"
         case .hard: return "exclamationmark.triangle.fill"

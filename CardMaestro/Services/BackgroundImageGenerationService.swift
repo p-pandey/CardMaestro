@@ -2,6 +2,7 @@ import Foundation
 import SwiftUI
 import CoreData
 import ImagePlayground
+import UIKit
 
 struct ImageGenerationTask: Identifiable {
     let id = UUID()
@@ -61,6 +62,8 @@ class BackgroundImageGenerationService: ObservableObject {
     // State blocking
     @Published var isUserReviewingSuggestions = false
     
+    // App state tracking
+    @Published private var isAppInForeground = true
     
     private let persistentContainer: NSPersistentContainer
     
@@ -80,6 +83,9 @@ class BackgroundImageGenerationService: ObservableObject {
         
         // Get persistent container directly from PersistenceController
         self.persistentContainer = PersistenceController.shared.container
+        
+        // Set up app state monitoring
+        setupAppStateMonitoring()
         
         // Start the singleton sweeper
         startSweeper()
@@ -233,6 +239,39 @@ class BackgroundImageGenerationService: ObservableObject {
     
     
     // MARK: - Private Methods
+    
+    /// Set up app state monitoring to pause image generation when app is in background
+    private func setupAppStateMonitoring() {
+        // Monitor app state changes
+        NotificationCenter.default.addObserver(
+            forName: UIApplication.didEnterBackgroundNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.isAppInForeground = false
+            print("📱 App entered background - pausing image generation")
+        }
+        
+        NotificationCenter.default.addObserver(
+            forName: UIApplication.willEnterForegroundNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.isAppInForeground = true
+            print("📱 App entering foreground - resuming image generation")
+            self?.wakeUpSweeper()
+        }
+        
+        NotificationCenter.default.addObserver(
+            forName: UIApplication.didBecomeActiveNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.isAppInForeground = true
+            print("📱 App became active - resuming image generation")
+            self?.wakeUpSweeper()
+        }
+    }
     
     private func addTaskToQueue(_ task: ImageGenerationTask) {
         // Check if similar task already exists
@@ -488,6 +527,12 @@ class BackgroundImageGenerationService: ObservableObject {
     private func processAllDecks() async {
         print("🔄 Starting deck processing cycle...")
         
+        // Check if app is in foreground before processing
+        guard isAppInForeground else {
+            print("📱 App is in background - skipping deck processing to avoid Apple Intelligence errors")
+            return
+        }
+        
         // Check if we have valid generation methods
         let gptService = GPT5MiniService()
         let canGenerateContent = gptService.hasValidKey
@@ -577,17 +622,45 @@ class BackgroundImageGenerationService: ObservableObject {
             let currentCards = existingCards.map { (front: $0.front, type: $0.cardType.rawValue) }
             let deletedCards = deck.deletedSuggestionArray.map { (front: $0.front, type: $0.cardType) }
             
+            // Include existing suggestions to prevent duplicates
+            let existingSuggestions = (deck.visibleSuggestions + deck.invisibleSuggestions).map { (front: $0.front, type: $0.cardType.rawValue) }
+            
             let suggestions = try await gptService.generateCardSuggestions(
                 deckName: deck.name,
                 deckDescription: deck.deckDescription,
                 currentCards: currentCards,
-                suggestedCards: [], // No existing suggestions to consider
+                suggestedCards: existingSuggestions,
                 deletedCards: deletedCards,
                 count: needed
             )
             
             // Synchronously add suggestions as Cards with suggestionPending state
+            // Track what we're adding to prevent internal duplicates
+            var addedInThisBatch: Set<String> = []
+            var actuallyAdded = 0
+            
             for suggestion in suggestions {
+                // Create unique key for this suggestion
+                let uniqueKey = "\(suggestion.front.lowercased())|\(suggestion.type.lowercased())"
+                
+                // Check if we already have this suggestion in the deck or are adding it in this batch
+                let isDuplicateInDeck = (deck.activeCards + deck.archivedCards).contains { card in
+                    card.front.lowercased() == suggestion.front.lowercased() && 
+                    card.cardType.rawValue.lowercased() == suggestion.type.lowercased()
+                }
+                
+                let isDuplicateInBatch = addedInThisBatch.contains(uniqueKey)
+                
+                if isDuplicateInDeck {
+                    print("⚠️ Skipping duplicate suggestion (already in deck): '\(suggestion.front)'")
+                    continue
+                }
+                
+                if isDuplicateInBatch {
+                    print("⚠️ Skipping duplicate suggestion (already in this batch): '\(suggestion.front)'")
+                    continue
+                }
+                
                 let suggestionCard = Card(context: context)
                 suggestionCard.id = UUID()
                 suggestionCard.front = suggestion.front
@@ -599,11 +672,13 @@ class BackgroundImageGenerationService: ObservableObject {
                 suggestionCard.createdAt = Date()
                 suggestionCard.deck = deck
                 
+                addedInThisBatch.insert(uniqueKey)
+                actuallyAdded += 1
                 print("➕ Added pending suggestion: '\(suggestion.front)'")
             }
             
             try context.save()
-            print("✅ Generated and saved \(suggestions.count) pending suggestions")
+            print("✅ Generated and saved \(actuallyAdded) out of \(suggestions.count) pending suggestions (duplicates filtered)")
             
             // Merge changes to main context so UI sees the updates
             await MainActor.run {
@@ -1095,6 +1170,11 @@ class BackgroundImageGenerationService: ObservableObject {
     private func generateImageWithAppleIntelligence(prompt: String) async throws -> UIImage {
         print("🎯 Starting Apple Intelligence generation with prompt: '\(prompt)'")
         print("📱 Device iOS version: \(UIDevice.current.systemVersion)")
+        
+        // Check if app is in foreground before Apple Intelligence generation
+        guard isAppInForeground else {
+            throw NSError(domain: "BackgroundImageGeneration", code: 12, userInfo: [NSLocalizedDescriptionKey: "Apple Intelligence image generation is not available when the app is in the background. The app must be in the foreground for Apple Intelligence to work."])
+        }
         
         // Try the main prompt first
         let mainResult = await tryImageGeneration(with: prompt)

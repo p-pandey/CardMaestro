@@ -7,7 +7,7 @@ enum CardState: String, CaseIterable {
     case active = "active"              // Normal cards ready for study
     case suggestion = "suggestion"      // AI-generated cards ready for user review
     case suggestionPending = "suggestionPending"  // AI-generated cards awaiting image generation
-    case archived = "archived"          // Cards set aside by user (same as isArchived)
+    case archived = "archived"          // Cards set aside by user
     
     var displayName: String {
         switch self {
@@ -39,14 +39,11 @@ public class Card: NSManagedObject, Identifiable {
         }
         set {
             cardState = newValue.rawValue
-            // Keep isArchived in sync for backwards compatibility
             if newValue == .archived {
-                isArchived = true
                 if archivedAt == nil {
                     archivedAt = Date()
                 }
             } else {
-                isArchived = false
                 archivedAt = nil
             }
         }
@@ -74,8 +71,13 @@ public class Card: NSManagedObject, Identifiable {
     
     /// Set archived status using Core Data properties
     func setArchived(_ archived: Bool, at date: Date? = nil) {
-        isArchived = archived
-        archivedAt = archived ? (date ?? Date()) : nil
+        if archived {
+            state = .archived
+            archivedAt = date ?? Date()
+        } else {
+            state = .active
+            archivedAt = nil
+        }
     }
     
     
