@@ -234,6 +234,8 @@ struct StudyView: View {
             Image(systemName: "checkmark.circle.fill")
                 .font(.system(size: 60))
                 .foregroundColor(.green)
+                .padding(12)
+                .liquidGlassIcon(baseColor: .green)
             
             Text("No cards to study")
                 .font(.title2)
@@ -288,6 +290,8 @@ struct StudyView: View {
                         Image(systemName: iconForEase(ease))
                             .font(.title3)
                             .fontWeight(.medium)
+                            .padding(6)
+                            .liquidGlassIcon(baseColor: textColorForEase(ease))
                         
                         Text(ease.title)
                             .font(.caption)
@@ -746,6 +750,8 @@ struct AnimatedTrophyView: View {
                 )
                 .scaleEffect(scaleEffect)
                 .rotationEffect(.degrees(rotationAngle))
+                .padding(20)
+                .liquidGlassIcon(baseColor: .orange)
                 .shadow(color: Color.orange.opacity(0.8), radius: 20, x: 0, y: 8)
                 .overlay {
                     // Inner glow effect
@@ -846,6 +852,8 @@ struct SequentialReviewStatView: View {
                 .font(.title3)
                 .foregroundColor(colorForEase(ease))
                 .frame(width: 24)
+                .padding(4)
+                .liquidGlassIcon(baseColor: colorForEase(ease))
                 .scaleEffect(isVisible ? 1.0 : 0.3)
                 .opacity(isVisible ? 1.0 : 0.0)
             

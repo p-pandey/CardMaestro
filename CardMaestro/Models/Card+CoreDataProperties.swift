@@ -26,6 +26,8 @@ extension Card {
     @NSManaged public var cardState: String
     @NSManaged public var suggestionContext: String?
     @NSManaged public var suggestionCategory: String?
+    @NSManaged public var imageGenerationFailureCount: Int32
+    @NSManaged public var lastImageGenerationFailure: Date?
     @NSManaged public var deck: Deck
     @NSManaged public var reviewHistory: NSSet?
 

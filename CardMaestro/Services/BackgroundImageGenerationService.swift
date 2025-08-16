@@ -107,6 +107,11 @@ class BackgroundImageGenerationService: ObservableObject {
     
     /// Queue a card image for generation
     func generateCardImage(for card: Card, priority: ImageGenerationTask.Priority = .normal, customImagePrompt: String? = nil) {
+        // Check if we should attempt image generation for this card
+        guard card.shouldAttemptImageGeneration else {
+            print("⏸️ Skipping image generation queue for card '\(card.front)' due to previous failures")
+            return
+        }
         
         let prompt = buildCardImagePrompt(front: card.front, back: getCardContentSummary(card), deck: card.deck, customImagePrompt: customImagePrompt)
         let task = ImageGenerationTask(
@@ -438,15 +443,29 @@ class BackgroundImageGenerationService: ObservableObject {
     }
     
     private func handleFailedTask(_ task: ImageGenerationTask) async {
-        // For failed suggestions, delete the temporary card or suggestion entity
         await persistentContainer.performBackgroundTask { context in
-            if let objectId = task.objectId,
-               let card = try? context.existingObject(with: objectId) as? Card {
-                print("❌ Image generation failed for card: '\(card.front)'")
-                
-                // Delete the temporary card
-                context.delete(card)
-                try? context.save()
+            guard let objectId = task.objectId else { return }
+            
+            switch task.type {
+            case .cardImage, .suggestionImage:
+                if let card = try? context.existingObject(with: objectId) as? Card {
+                    print("❌ Image generation failed for card: '\(card.front)'")
+                    
+                    // Record the failure
+                    card.recordImageGenerationFailure()
+                    
+                    do {
+                        try context.save()
+                        print("📉 Recorded image generation failure for card: '\(card.front)' (total: \(card.imageGenerationFailureCount))")
+                    } catch {
+                        print("❌ Failed to save image generation failure tracking: \(error)")
+                    }
+                }
+            case .deckIcon:
+                // For deck icons, we don't have failure tracking yet, just log
+                if let deck = try? context.existingObject(with: objectId) as? Deck {
+                    print("❌ Image generation failed for deck icon: '\(deck.name)'")
+                }
             }
         }
         
@@ -612,6 +631,12 @@ class BackgroundImageGenerationService: ObservableObject {
                 continue
             }
             
+            // Check if we should attempt image generation for this card
+            guard suggestionCard.shouldAttemptImageGeneration else {
+                print("⏸️ Skipping image generation for suggestion '\(suggestionCard.front)' due to previous failures")
+                continue
+            }
+            
             print("🎨 Generating image for pending suggestion: '\(suggestionCard.front)'")
             
             do {
@@ -635,6 +660,9 @@ class BackgroundImageGenerationService: ObservableObject {
                 
             } catch {
                 print("❌ Failed to generate image for suggestion '\(suggestionCard.front)': \(error)")
+                
+                // Record the failure
+                suggestionCard.recordImageGenerationFailure()
             }
         }
         
@@ -654,7 +682,9 @@ class BackgroundImageGenerationService: ObservableObject {
     
     /// Phase 3: Process visible suggestions (add missing images)
     private func processVisibleSuggestions(for deck: Deck, in context: NSManagedObjectContext) async {
-        let visibleSuggestions = deck.visibleSuggestions.filter { !$0.hasCustomImage }
+        let visibleSuggestions = deck.visibleSuggestions.filter { 
+            !$0.hasCustomImage && $0.shouldAttemptImageGeneration 
+        }
         
         if visibleSuggestions.isEmpty {
             return
@@ -671,7 +701,9 @@ class BackgroundImageGenerationService: ObservableObject {
     private func processCurrentCards(for deck: Deck, in context: NSManagedObjectContext) async {
         let cardsNeedingImages = deck.activeCards.filter { card in
             guard let imagePrompt = card.imagePrompt, !imagePrompt.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return false }
-            return getCardImageData(card) == nil
+            guard getCardImageData(card) == nil else { return false }
+            // Check if we should attempt image generation for this card
+            return card.shouldAttemptImageGeneration
         }
         
         if cardsNeedingImages.isEmpty {
@@ -719,6 +751,12 @@ class BackgroundImageGenerationService: ObservableObject {
             return
         }
         
+        // Check if we should attempt image generation for this card
+        guard card.shouldAttemptImageGeneration else {
+            print("⏸️ Skipping image generation for card '\(card.front)' due to previous failures")
+            return
+        }
+        
         print("🎨 Generating image for card: '\(card.front)'")
         
         do {
@@ -741,6 +779,16 @@ class BackgroundImageGenerationService: ObservableObject {
             
         } catch {
             print("❌ Failed to generate image for card '\(card.front)': \(error)")
+            
+            // Record the failure
+            card.recordImageGenerationFailure()
+            
+            // Save the failure tracking
+            do {
+                try context.save()
+            } catch {
+                print("❌ Failed to save image generation failure tracking: \(error)")
+            }
         }
     }
     

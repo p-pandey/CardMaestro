@@ -7,7 +7,7 @@ struct CardConstants {
     struct Dimensions {
         /// The actual visible card content height (the white rounded rectangle)
         /// Optimized for iPhone 15 to maximize content while fitting all UI elements
-        static let cardContentHeight: CGFloat = 580
+        static let cardContentHeight: CGFloat = 560
         
         /// Standard horizontal padding for card containers
         static let horizontalPadding: CGFloat = 20

@@ -265,6 +265,50 @@ public class Card: NSManagedObject, Identifiable {
         return structuredContent as? FactContent
     }
     
+    // MARK: - Image Generation Failure Tracking
+    
+    /// Records an image generation failure
+    func recordImageGenerationFailure() {
+        imageGenerationFailureCount += 1
+        lastImageGenerationFailure = Date()
+        print("📉 Image generation failure recorded for card '\(front)': \(imageGenerationFailureCount) failures")
+        
+        // Auto-archive logic
+        if shouldAutoArchiveAfterFailures() {
+            print("🗄️ Auto-archiving card '\(front)' after \(imageGenerationFailureCount) image generation failures")
+            archive()
+        }
+    }
+    
+    /// Resets the image generation failure counter (called when image prompt is edited)
+    func resetImageGenerationFailures() {
+        if imageGenerationFailureCount > 0 {
+            print("🔄 Resetting image generation failure count for card '\(front)' (was \(imageGenerationFailureCount))")
+            imageGenerationFailureCount = 0
+            lastImageGenerationFailure = nil
+        }
+    }
+    
+    /// Whether this card should be auto-archived after image generation failures
+    private func shouldAutoArchiveAfterFailures() -> Bool {
+        guard imageGenerationFailureCount >= 3 else { return false }
+        
+        // Auto-archive suggestion and suggestionPending cards after 3 failures
+        return state == .suggestion || state == .suggestionPending
+    }
+    
+    /// Whether image generation should be attempted for this card
+    var shouldAttemptImageGeneration: Bool {
+        // Don't attempt if already archived
+        if state == .archived { return false }
+        
+        // Don't attempt if we've had 3+ failures on active cards
+        if state == .active && imageGenerationFailureCount >= 3 { return false }
+        
+        // For suggestion cards, they get auto-archived after 3 failures
+        return true
+    }
+    
 }
 
 enum ReviewEase: Int16, CaseIterable {

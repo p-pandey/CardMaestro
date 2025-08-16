@@ -30,15 +30,6 @@ struct SuggestedCardsView: View {
                 
                 if let card = currentCard {
                     VStack(spacing: 20) {
-                        // Progress indicator
-                        HStack {
-                            ForEach(0..<suggestedCards.count, id: \.self) { index in
-                                Circle()
-                                    .fill(index == currentCardIndex ? .blue : .gray.opacity(0.3))
-                                    .frame(width: 8, height: 8)
-                            }
-                        }
-                        .padding(.top)
                         
                         Spacer()
                         
@@ -48,7 +39,10 @@ struct SuggestedCardsView: View {
                             side: .back,
                             showFlipIcon: false
                         )
-                        .frame(height: CardConstants.Dimensions.cardContentHeight)
+                        .frame(
+                            width: UIScreen.main.bounds.width - (CardConstants.Dimensions.horizontalPadding * 2),
+                            height: CardConstants.Dimensions.cardContentHeight
+                        )
                         .offset(x: dragOffset.width)
                         .rotationEffect(.degrees(dragOffset.width / 10))
                         .scaleEffect(1.0 - abs(dragOffset.width) / 1000)
@@ -68,36 +62,6 @@ struct SuggestedCardsView: View {
                         }
                         
                         Spacer()
-                        
-                        // Action hints
-                        HStack(spacing: 40) {
-                            VStack(spacing: 8) {
-                                Image(systemName: "archivebox")
-                                    .font(.title2)
-                                    .foregroundColor(.orange)
-                                Text("Archive")
-                                    .font(.caption)
-                                    .foregroundColor(.orange)
-                                Text("Swipe left")
-                                    .font(.caption2)
-                                    .foregroundColor(.secondary)
-                            }
-                            .opacity(dragOffset.width < -50 ? 1.0 : 0.6)
-                            
-                            VStack(spacing: 8) {
-                                Image(systemName: "plus.circle")
-                                    .font(.title2)
-                                    .foregroundColor(.green)
-                                Text("Add to Deck")
-                                    .font(.caption)
-                                    .foregroundColor(.green)
-                                Text("Swipe right")
-                                    .font(.caption2)
-                                    .foregroundColor(.secondary)
-                            }
-                            .opacity(dragOffset.width > 50 ? 1.0 : 0.6)
-                        }
-                        .padding(.bottom, 40)
                     }
                 } else {
                     // Empty state
@@ -144,7 +108,7 @@ struct SuggestedCardsView: View {
             }
         }
         .sheet(item: $cardToEdit) { card in
-            CardEditView(card: card, deck: deck)
+            FieldLevelCardEditView(card: card, deck: deck)
         }
         .onAppear {
             // Block new suggestions while user is in this view

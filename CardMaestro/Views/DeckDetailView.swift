@@ -1224,7 +1224,7 @@ struct IncompleteCardRowView: View {
             }
         }
 .sheet(isPresented: $showingEdit) {
-            CardCreationView(deck: deck, prefillFront: nil, editingCard: card)
+            FieldLevelCardEditView(card: card, deck: deck)
         }
     }
     

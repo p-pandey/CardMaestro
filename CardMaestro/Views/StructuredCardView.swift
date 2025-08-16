@@ -81,6 +81,7 @@ struct StructuredCardView: View {
                     .padding(.horizontal, 24)
                     .padding(.vertical, 12)
             }
+            .clipped() // Ensure content doesn't overflow into image area
             
             Spacer(minLength: 20)
         }
@@ -92,7 +93,7 @@ struct StructuredCardView: View {
     // MARK: - Background
     
     private var cardBackground: some View {
-        CardBackgroundView(cardType: card.cardType)
+        OptimizedTexturedCardBackground(cardType: card.cardType)
     }
     
     // MARK: - Header
@@ -112,13 +113,18 @@ struct StructuredCardView: View {
                     if showFlipIcon {
                         Image(systemName: "arrow.triangle.2.circlepath")
                             .foregroundColor(card.cardType.color.opacity(0.6))
-                            .font(.caption)
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                            .padding(8)
+                            .liquidGlassIcon(baseColor: card.cardType.color)
                     }
                     
                     Image(systemName: card.cardType.icon)
-                        .font(.caption)
-                        .fontWeight(.medium)
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
                         .foregroundColor(card.cardType.color)
+                        .padding(8)
+                        .liquidGlassIcon(baseColor: card.cardType.color)
                 }
             }
         }
@@ -179,19 +185,21 @@ struct StructuredCardView: View {
                         .aspectRatio(contentMode: .fill)
                         .frame(width: 200, height: 150)
                         .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .liquidGlassLargeImage(cornerRadius: 12)
                     Spacer()
                 }
                 
             case .conjugation:
-                // Smaller image in top right below type icon for conjugation cards
+                // Larger image in top right below type icon for conjugation cards
                 VStack {
                     HStack {
                         Spacer()
                         Image(uiImage: customImage)
                             .resizable()
                             .aspectRatio(contentMode: .fill)
-                            .frame(width: 60, height: 60)
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                            .frame(width: 78, height: 78) // 30% bigger than 60x60
+                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                            .liquidGlassSmallImage(cornerRadius: 10)
                             .padding(.top, 50) // Position below type icon
                             .padding(.trailing, 20)
                     }
@@ -281,7 +289,7 @@ struct VocabularyBackView: View {
     let content: VocabularyContent
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 24) {
+        VStack(alignment: .leading, spacing: 0) {
             // Primary meaning with script font
             Text(content.meaning)
                 .font(.custom("Georgia", size: min(DynamicTypography.primarySize(for: content.meaning, cardType: .vocabulary), 36)))
@@ -292,19 +300,25 @@ struct VocabularyBackView: View {
                 .minimumScaleFactor(0.8)
                 .italic()
                 .letterpress()
+                .padding(.bottom, 20)
             
-            // Add spacing for image (handled by imageOverlay)
-            Spacer(minLength: 160) // Space for 150px image + margins
+            // Flexible space that accounts for image
+            Spacer(minLength: 180) // Space for 150px image + margins
             
-            // Optional detail at bottom
+            // Optional detail firmly positioned at bottom
             if let detail = content.detail, !detail.isEmpty {
-                Text(detail)
-                    .font(.system(size: DynamicTypography.secondarySize(for: detail)))
-                    .fontWeight(.regular)
-                    .foregroundColor(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .lineLimit(nil)
-                    .minimumScaleFactor(0.8)
+                VStack(spacing: 0) {
+                    Spacer(minLength: 20) // Minimum spacing from image
+                    
+                    Text(detail)
+                        .font(.system(size: DynamicTypography.secondarySize(for: detail)))
+                        .fontWeight(.regular)
+                        .foregroundColor(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .lineLimit(nil)
+                        .minimumScaleFactor(0.8)
+                        .padding(.top, 16)
+                }
             }
         }
     }
@@ -315,8 +329,8 @@ struct ConjugationBackView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            // English meaning with script font and space for smaller image
-            HStack(alignment: .top) {
+            // English meaning with script font and space for larger image
+            HStack(alignment: .bottom) { // Changed to align bottom with image
                 Text(content.meaning)
                     .font(.custom("Georgia", size: min(DynamicTypography.secondarySize(for: content.meaning), 24)))
                     .fontWeight(.medium)
@@ -325,39 +339,45 @@ struct ConjugationBackView: View {
                     .italic()
                     .letterpress()
                 
-                Spacer(minLength: 70) // Space for 60px image + margins
+                Spacer(minLength: 98) // Space for 78px image + margins (30% bigger)
             }
-            .padding(.top, 20) // Extra space for smaller image in top right
+            .padding(.top, 50) // Extra space for image positioning
             
-            // Conjugation table with improved styling
+            // Conjugation table with improved styling - no background
             if !content.conjugations.isEmpty {
-                VStack(spacing: 8) {
+                VStack(spacing: 10) {
                     ForEach(Array(content.conjugations.enumerated()), id: \.offset) { index, row in
                         if row.count >= 2 {
-                            HStack(spacing: 16) {
-                                Text(row[0]) // Pronoun/subject
-                                    .font(.system(size: 16, design: .monospaced))
-                                    .foregroundColor(.secondary)
+                            HStack(spacing: 20) {
+                                Text(row[0]) // Pronoun/subject - smaller
+                                    .font(.system(size: 14, design: .monospaced))
+                                    .foregroundColor(pronounColor)
                                     .frame(width: 80, alignment: .leading)
                                 
-                                Text(row[1]) // Conjugated form
-                                    .font(.system(size: 16, design: .monospaced))
-                                    .fontWeight(.medium)
-                                    .foregroundColor(.primary)
+                                Text(row[1]) // Conjugated form - bigger and more prominent
+                                    .font(.system(size: 18, design: .monospaced))
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(conjugatedWordColor)
                                 
                                 Spacer()
                             }
-                            .padding(.vertical, 6)
-                            .padding(.horizontal, 16)
+                            .padding(.vertical, 4)
+                            .padding(.horizontal, 8)
                         }
                     }
                 }
-                .background(
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(Color(.secondarySystemBackground))
-                )
             }
         }
+    }
+    
+    @Environment(\.colorScheme) var colorScheme
+    
+    private var pronounColor: Color {
+        colorScheme == .dark ? .gray : .secondary
+    }
+    
+    private var conjugatedWordColor: Color {
+        colorScheme == .dark ? .white : .black
     }
 }
 
@@ -365,7 +385,7 @@ struct FactBackView: View {
     let content: FactContent
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 24) {
+        VStack(alignment: .leading, spacing: 0) {
             // Primary answer with script font
             Text(content.answer)
                 .font(.custom("Georgia", size: min(DynamicTypography.primarySize(for: content.answer, cardType: .fact), 32)))
@@ -376,19 +396,25 @@ struct FactBackView: View {
                 .minimumScaleFactor(0.8)
                 .italic()
                 .letterpress()
+                .padding(.bottom, 20)
             
-            // Add spacing for image (handled by imageOverlay)
-            Spacer(minLength: 160) // Space for 150px image + margins
+            // Flexible space that accounts for image
+            Spacer(minLength: 180) // Space for 150px image + margins
             
-            // Optional detail at bottom
+            // Optional detail firmly positioned at bottom
             if let detail = content.detail, !detail.isEmpty {
-                Text(detail)
-                    .font(.system(size: DynamicTypography.secondarySize(for: detail)))
-                    .fontWeight(.regular)
-                    .foregroundColor(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .lineLimit(nil)
-                    .minimumScaleFactor(0.8)
+                VStack(spacing: 0) {
+                    Spacer(minLength: 20) // Minimum spacing from image
+                    
+                    Text(detail)
+                        .font(.system(size: DynamicTypography.secondarySize(for: detail)))
+                        .fontWeight(.regular)
+                        .foregroundColor(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .lineLimit(nil)
+                        .minimumScaleFactor(0.8)
+                        .padding(.top, 16)
+                }
             }
         }
     }
@@ -404,6 +430,8 @@ struct MissingContentView: View {
             Image(systemName: "exclamationmark.triangle")
                 .font(.title)
                 .foregroundColor(.orange)
+                .padding(8)
+                .liquidGlassIcon(baseColor: .orange)
             
             Text("Content Missing")
                 .font(.headline)
@@ -470,21 +498,33 @@ struct CardFrontOverlay: View {
     var body: some View {
         HStack {
             Text(frontText)
-                .font(.caption)
-                .fontWeight(.medium)
-                .foregroundStyle(.tertiary)
+                .font(.subheadline)
+                .fontWeight(.semibold)
+                .foregroundColor(textColor)
                 .multilineTextAlignment(.leading)
                 .lineLimit(2)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
                 .background(
-                    RoundedRectangle(cornerRadius: 6)
-                        .fill(.ultraThinMaterial)
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(backgroundColor)
                         .overlay(
-                            RoundedRectangle(cornerRadius: 6)
-                                .stroke(cardType.color.opacity(0.3), lineWidth: 0.5)
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(cardType.color.opacity(0.4), lineWidth: 1.0)
                         )
                 )
         }
+    }
+    
+    @Environment(\.colorScheme) var colorScheme
+    
+    private var textColor: Color {
+        colorScheme == .dark ? .white : .black
+    }
+    
+    private var backgroundColor: Color {
+        colorScheme == .dark 
+            ? Color.black.opacity(0.7)
+            : Color.white.opacity(0.9)
     }
 }

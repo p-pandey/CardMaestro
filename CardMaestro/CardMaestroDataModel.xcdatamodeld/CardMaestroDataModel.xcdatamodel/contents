@@ -20,6 +20,8 @@
         <attribute name="cardState" optional="NO" attributeType="String" defaultValueString="active" usesScalarValueType="NO"/>
         <attribute name="suggestionContext" optional="YES" attributeType="String"/>
         <attribute name="suggestionCategory" optional="YES" attributeType="String"/>
+        <attribute name="imageGenerationFailureCount" optional="NO" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="lastImageGenerationFailure" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <relationship name="deck" optional="NO" maxCount="1" deletionRule="Nullify" destinationEntity="Deck" inverseName="cards" inverseEntity="Deck"/>
         <relationship name="reviewHistory" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="ReviewHistory" inverseName="card" inverseEntity="ReviewHistory"/>
     </entity>

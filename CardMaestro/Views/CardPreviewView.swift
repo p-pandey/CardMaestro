@@ -47,7 +47,7 @@ ScrollView(.vertical, showsIndicators: true) {
             // Force comprehensive refresh when returning from edit view
             refreshCardData()
         }) {
-CardCreationView(deck: deck, prefillFront: nil, editingCard: card)
+FieldLevelCardEditView(card: card, deck: deck)
         }
     }
     
