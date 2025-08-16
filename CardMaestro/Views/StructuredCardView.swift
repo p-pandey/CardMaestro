@@ -112,12 +112,14 @@ struct StructuredCardView: View {
                         Image(systemName: "arrow.triangle.2.circlepath")
                             .foregroundColor(card.cardType.color.opacity(0.6))
                             .font(.caption)
+                            .elementShadow()
                     }
                     
                     Image(systemName: card.cardType.icon)
                         .font(.caption)
                         .fontWeight(.medium)
                         .foregroundColor(card.cardType.color)
+                        .elementShadow()
                 }
             }
         }
@@ -178,7 +180,7 @@ struct StructuredCardView: View {
                         .aspectRatio(contentMode: .fill)
                         .frame(width: 200, height: 150)
                         .clipShape(RoundedRectangle(cornerRadius: 12))
-                        .shadow(color: .black.opacity(0.3), radius: 6, x: 0, y: 3)
+                        .floatingShadow()
                     Spacer()
                 }
                 
@@ -192,7 +194,7 @@ struct StructuredCardView: View {
                             .aspectRatio(contentMode: .fill)
                             .frame(width: 60, height: 60)
                             .clipShape(RoundedRectangle(cornerRadius: 8))
-                            .shadow(color: .black.opacity(0.2), radius: 3, x: 0, y: 2)
+                            .floatingShadow()
                             .padding(.top, 50) // Position below type icon
                             .padding(.trailing, 20)
                     }
@@ -225,6 +227,7 @@ struct VocabularyFrontView: View {
                 .frame(maxWidth: .infinity, alignment: .center)
                 .lineLimit(nil)
                 .minimumScaleFactor(0.7)
+                .elementShadow()
             
             Spacer()
         }
@@ -246,6 +249,7 @@ struct ConjugationFrontView: View {
                 .frame(maxWidth: .infinity, alignment: .center)
                 .lineLimit(nil)
                 .minimumScaleFactor(0.7)
+                .elementShadow()
             
             Spacer()
         }
@@ -267,6 +271,7 @@ struct FactFrontView: View {
                 .frame(maxWidth: .infinity, alignment: .center)
                 .lineLimit(nil)
                 .minimumScaleFactor(0.7)
+                .elementShadow()
             
             Spacer()
         }
@@ -289,6 +294,7 @@ struct VocabularyBackView: View {
                 .lineLimit(nil)
                 .minimumScaleFactor(0.8)
                 .italic()
+                .elementShadow()
             
             // Add spacing for image (handled by imageOverlay)
             Spacer(minLength: 160) // Space for 150px image + margins
@@ -302,6 +308,7 @@ struct VocabularyBackView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .lineLimit(nil)
                     .minimumScaleFactor(0.8)
+                    .elementShadow()
             }
         }
     }
@@ -320,6 +327,7 @@ struct ConjugationBackView: View {
                     .foregroundColor(.primary)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .italic()
+                    .elementShadow()
                 
                 Spacer(minLength: 70) // Space for 60px image + margins
             }
@@ -335,11 +343,13 @@ struct ConjugationBackView: View {
                                     .font(.system(size: 16, design: .monospaced))
                                     .foregroundColor(.secondary)
                                     .frame(width: 80, alignment: .leading)
+                                    .elementShadow()
                                 
                                 Text(row[1]) // Conjugated form
                                     .font(.system(size: 16, design: .monospaced))
                                     .fontWeight(.medium)
                                     .foregroundColor(.primary)
+                                    .elementShadow()
                                 
                                 Spacer()
                             }
@@ -371,6 +381,7 @@ struct FactBackView: View {
                 .lineLimit(nil)
                 .minimumScaleFactor(0.8)
                 .italic()
+                .elementShadow()
             
             // Add spacing for image (handled by imageOverlay)
             Spacer(minLength: 160) // Space for 150px image + margins
@@ -384,6 +395,7 @@ struct FactBackView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .lineLimit(nil)
                     .minimumScaleFactor(0.8)
+                    .elementShadow()
             }
         }
     }
@@ -416,7 +428,7 @@ struct MissingContentView: View {
 
 // MARK: - Shared Components
 
-/// Shared card background with paper texture and drop shadow
+/// Shared card background with paper texture and layered shadows
 struct CardBackgroundView: View {
     let cardType: CardType
     @Environment(\.colorScheme) var colorScheme
@@ -450,12 +462,7 @@ struct CardBackgroundView: View {
                         lineWidth: 1
                     )
             )
-            .shadow(
-                color: .black.opacity(colorScheme == .dark ? 0.4 : 0.2),
-                radius: 8,
-                x: 0,
-                y: 4
-            )
+            .cardShadow(cardType: cardType)
     }
     
     private var paperColor: Color {
