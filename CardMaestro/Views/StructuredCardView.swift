@@ -227,7 +227,7 @@ struct VocabularyFrontView: View {
                 .frame(maxWidth: .infinity, alignment: .center)
                 .lineLimit(nil)
                 .minimumScaleFactor(0.7)
-                .elementShadow()
+                .letterpress()
             
             Spacer()
         }
@@ -249,7 +249,7 @@ struct ConjugationFrontView: View {
                 .frame(maxWidth: .infinity, alignment: .center)
                 .lineLimit(nil)
                 .minimumScaleFactor(0.7)
-                .elementShadow()
+                .letterpress()
             
             Spacer()
         }
@@ -271,7 +271,7 @@ struct FactFrontView: View {
                 .frame(maxWidth: .infinity, alignment: .center)
                 .lineLimit(nil)
                 .minimumScaleFactor(0.7)
-                .elementShadow()
+                .letterpress()
             
             Spacer()
         }
@@ -294,7 +294,7 @@ struct VocabularyBackView: View {
                 .lineLimit(nil)
                 .minimumScaleFactor(0.8)
                 .italic()
-                .elementShadow()
+                .letterpress()
             
             // Add spacing for image (handled by imageOverlay)
             Spacer(minLength: 160) // Space for 150px image + margins
@@ -327,7 +327,7 @@ struct ConjugationBackView: View {
                     .foregroundColor(.primary)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .italic()
-                    .elementShadow()
+                    .letterpress()
                 
                 Spacer(minLength: 70) // Space for 60px image + margins
             }
@@ -381,7 +381,7 @@ struct FactBackView: View {
                 .lineLimit(nil)
                 .minimumScaleFactor(0.8)
                 .italic()
-                .elementShadow()
+                .letterpress()
             
             // Add spacing for image (handled by imageOverlay)
             Spacer(minLength: 160) // Space for 150px image + margins

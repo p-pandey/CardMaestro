@@ -145,6 +145,27 @@ struct FloatingShadowModifier: ViewModifier {
     }
 }
 
+/// View modifier for applying letterpress effects to text
+struct LetterpressModifier: ViewModifier {
+    @Environment(\.colorScheme) var colorScheme
+    
+    func body(content: Content) -> some View {
+        content
+            .shadow(
+                color: colorScheme == .dark ? .white.opacity(0.08) : .white.opacity(0.9),
+                radius: 0,
+                x: 0,
+                y: 1
+            )
+            .shadow(
+                color: colorScheme == .dark ? .black.opacity(0.7) : .black.opacity(0.25),
+                radius: 0,
+                x: 0,
+                y: -1
+            )
+    }
+}
+
 // MARK: - View Extensions
 
 extension View {
@@ -161,5 +182,10 @@ extension View {
     /// Apply floating shadows for images and media
     func floatingShadow() -> some View {
         modifier(FloatingShadowModifier())
+    }
+    
+    /// Apply letterpress effects for embossed text appearance
+    func letterpress() -> some View {
+        modifier(LetterpressModifier())
     }
 }
