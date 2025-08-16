@@ -68,6 +68,7 @@ struct StructuredCardView: View {
         }
         .frame(height: CardConstants.Dimensions.cardContentHeight)
         .clipShape(RoundedRectangle(cornerRadius: 16))
+        .cardShadow(cardType: card.cardType)
     }
     
     @ViewBuilder
@@ -112,14 +113,12 @@ struct StructuredCardView: View {
                         Image(systemName: "arrow.triangle.2.circlepath")
                             .foregroundColor(card.cardType.color.opacity(0.6))
                             .font(.caption)
-                            .elementShadow()
                     }
                     
                     Image(systemName: card.cardType.icon)
                         .font(.caption)
                         .fontWeight(.medium)
                         .foregroundColor(card.cardType.color)
-                        .elementShadow()
                 }
             }
         }
@@ -180,7 +179,6 @@ struct StructuredCardView: View {
                         .aspectRatio(contentMode: .fill)
                         .frame(width: 200, height: 150)
                         .clipShape(RoundedRectangle(cornerRadius: 12))
-                        .floatingShadow()
                     Spacer()
                 }
                 
@@ -194,7 +192,6 @@ struct StructuredCardView: View {
                             .aspectRatio(contentMode: .fill)
                             .frame(width: 60, height: 60)
                             .clipShape(RoundedRectangle(cornerRadius: 8))
-                            .floatingShadow()
                             .padding(.top, 50) // Position below type icon
                             .padding(.trailing, 20)
                     }
@@ -308,7 +305,6 @@ struct VocabularyBackView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .lineLimit(nil)
                     .minimumScaleFactor(0.8)
-                    .elementShadow()
             }
         }
     }
@@ -343,13 +339,11 @@ struct ConjugationBackView: View {
                                     .font(.system(size: 16, design: .monospaced))
                                     .foregroundColor(.secondary)
                                     .frame(width: 80, alignment: .leading)
-                                    .elementShadow()
                                 
                                 Text(row[1]) // Conjugated form
                                     .font(.system(size: 16, design: .monospaced))
                                     .fontWeight(.medium)
                                     .foregroundColor(.primary)
-                                    .elementShadow()
                                 
                                 Spacer()
                             }
@@ -395,7 +389,6 @@ struct FactBackView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .lineLimit(nil)
                     .minimumScaleFactor(0.8)
-                    .elementShadow()
             }
         }
     }
@@ -462,7 +455,6 @@ struct CardBackgroundView: View {
                         lineWidth: 1
                     )
             )
-            .cardShadow(cardType: cardType)
     }
     
     private var paperColor: Color {
