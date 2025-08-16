@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="21754" systemVersion="22F82" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+    <entity name="Card" representedClassName="Card" syncable="YES">
+        <attribute name="back" optional="NO" attributeType="String"/>
+        <attribute name="cardTypeRaw" optional="YES" attributeType="String" defaultValueString="vocabulary"/>
+        <attribute name="createdAt" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="customImageData" optional="YES" attributeType="Binary"/>
+        <attribute name="dueDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="easeFactor" optional="NO" attributeType="Float" defaultValueString="2.5" usesScalarValueType="YES"/>
+        <attribute name="front" optional="NO" attributeType="String"/>
+        <attribute name="id" optional="NO" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="imagePrompt" optional="YES" attributeType="String"/>
+        <attribute name="interval" optional="NO" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="isArchived" optional="NO" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="jsonContent" optional="YES" attributeType="String"/>
+        <attribute name="lastReviewedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="archivedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="repetitions" optional="NO" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="reviewCount" optional="NO" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="cardState" optional="NO" attributeType="String" defaultValueString="active" usesScalarValueType="NO"/>
+        <attribute name="suggestionContext" optional="YES" attributeType="String"/>
+        <attribute name="suggestionCategory" optional="YES" attributeType="String"/>
+        <relationship name="deck" optional="NO" maxCount="1" deletionRule="Nullify" destinationEntity="Deck" inverseName="cards" inverseEntity="Deck"/>
+        <relationship name="reviewHistory" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="ReviewHistory" inverseName="card" inverseEntity="ReviewHistory"/>
+    </entity>
+    <entity name="Deck" representedClassName="Deck" syncable="YES">
+        <attribute name="createdAt" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="customIconData" optional="YES" attributeType="Binary"/>
+        <attribute name="deckDescription" optional="YES" attributeType="String"/>
+        <attribute name="id" optional="NO" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="name" optional="NO" attributeType="String"/>
+        <attribute name="queuedSuggestions" optional="NO" attributeType="Integer 32" defaultValueString="50" usesScalarValueType="YES"/>
+        <relationship name="cards" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Card" inverseName="deck" inverseEntity="Card"/>
+        <relationship name="tags" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Tag" inverseName="decks" inverseEntity="Tag"/>
+        <relationship name="deletedSuggestions" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="DeletedSuggestion" inverseName="deck" inverseEntity="DeletedSuggestion"/>
+    </entity>
+    <entity name="ReviewHistory" representedClassName="ReviewHistory" syncable="YES">
+        <attribute name="ease" optional="NO" attributeType="Integer 16" usesScalarValueType="YES"/>
+        <attribute name="id" optional="NO" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="reviewDate" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="timeSpent" optional="NO" attributeType="Integer 32" usesScalarValueType="YES"/>
+        <relationship name="card" optional="NO" maxCount="1" deletionRule="Nullify" destinationEntity="Card" inverseName="reviewHistory" inverseEntity="Card"/>
+        <relationship name="session" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="StudySession" inverseName="reviews" inverseEntity="StudySession"/>
+    </entity>
+    <entity name="StudySession" representedClassName="StudySession" syncable="YES">
+        <attribute name="cardsReviewed" optional="NO" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="endTime" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="id" optional="NO" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="startTime" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
+        <relationship name="reviews" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="ReviewHistory" inverseName="session" inverseEntity="ReviewHistory"/>
+    </entity>
+    <entity name="Tag" representedClassName="Tag" syncable="YES">
+        <attribute name="color" optional="YES" attributeType="String"/>
+        <attribute name="id" optional="NO" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="name" optional="NO" attributeType="String"/>
+        <relationship name="decks" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Deck" inverseName="tags" inverseEntity="Deck"/>
+    </entity>
+    <entity name="DeletedSuggestion" representedClassName="DeletedSuggestion" syncable="YES">
+        <attribute name="id" optional="NO" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="front" optional="NO" attributeType="String"/>
+        <attribute name="cardType" optional="NO" attributeType="String"/>
+        <attribute name="deletedAt" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
+        <relationship name="deck" optional="NO" maxCount="1" deletionRule="Nullify" destinationEntity="Deck" inverseName="deletedSuggestions" inverseEntity="Deck"/>
+    </entity>
+</model>
